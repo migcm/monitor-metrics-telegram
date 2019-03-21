@@ -7,24 +7,26 @@ load_config(){
 	TELEGRAM_CHAT=""
 	TELEGRAM_ENDPOINT="https://api.telegram.org/bot"$TELEGRAM_TOKEN"/sendMessage?chat_id="$TELEGRAM_CHAT
 
-	# Ram
-	RAM_CRITICAL=90
-	RAM_WARNING=80	
+	# Other
+        DEBUG_MODE=1
 
-	# Swap
-	SWAP_CRITICAL=90
-	SWAP_WARNING=80
-
-	# Disk
-	DISK_CRITICAL=90
-	DISK_WARNING=80
-
- 	# CPU
-	CPU_CRITICAL=90
-	CPU_WARNING=80	
-
-	# Ping
-	PING_HOST="google.es"
+	#Check
+		# Ram
+		RAM_CRITICAL=90
+		RAM_WARNING=80	
+		# Swap
+		SWAP_CRITICAL=90
+		SWAP_WARNING=80
+		# Disk
+		DISK_CRITICAL=90
+		DISK_WARNING=80
+ 		# CPU
+		CPU_CRITICAL=90
+		CPU_WARNING=80	
+		# Ping
+		PING_HOST="google.es"
+		#Processes
+		PROCESSES_LIST="ssh;http"
 }
 
 check_ram(){
@@ -42,6 +44,13 @@ check_ram(){
                 send_error "WARNING" "The ram is at $percentSwap."
         fi
 
+
+	# Debug mode
+	if [ $DEBUG_MODE == 1 ]
+	then
+                send_error "DEBUG" "The ram has been checked: $percentRam %."
+                echo "DEBUG - The ram has been checked: $percentRam %."
+	fi
 }
 
 check_swap(){
@@ -58,6 +67,14 @@ check_swap(){
 	then
                 send_error "WARNING" "The swap is at $percentSwap."
 	fi
+
+
+	# Debug mode
+	if [ $DEBUG_MODE == 1 ]
+        then
+                send_error "DEBUG" "The swap has been checked: $percentSwap %."
+                echo "DEBUG - The swap has been checked: $percentSwap %."
+        fi
 }
 
 
@@ -66,11 +83,30 @@ check_disk(){
 	totalDisk=$()
 	freeDisk=$()
 
+	percentDisk=$()
+
+
+	# Debug mode
+	if [ $DEBUG_MODE == 1 ]
+        then
+                send_error "DEBUG" "The disk has been checked: $percentDisk %."
+                echo "DEBUG - The disk has been checked: $percentDisk %."
+        fi
+
 }
 
 check_cpu(){
 	totalCPU=$()
 	freeCPU=$()
+
+	percentCPU=$()
+
+	# Debug mode
+        if [ $DEBUG_MODE == 1 ]
+        then
+                send_error "DEBUG" "The CPU has been checked: $percentCPU %."
+                echo "DEBUG - The CPU has been checked: $percentCPU %."
+        fi
 }
 
 check_ping(){
@@ -80,8 +116,36 @@ check_ping(){
 	if [ "$ping" != 0 ]
 	then
 		send_error "CRITICAL" "Ping to $PING_HOST has failed." 
-
 	fi
+
+
+	# Debug mode
+	if [ $DEBUG_MODE == 1 ]
+        then
+                send_error "DEBUG" "The ping to $PING_HOST has been checked."
+                echo "DEBUG - The ping to $PING_HOST has been checked."
+        fi
+}
+
+check_processes(){
+
+	processes=$(echo $PROCESSES_LIST | tr ";" "\n")
+
+	for proc in $processes
+	do
+
+		running=$(ps ax | grep -v grep | grep $proc | wc -l)
+		if [ $running -le 0 ]
+		then
+			send_error "CRITICAL" "The $proc process is not running."
+		fi
+
+		if [ $DEBUG_MODE == 1 ]
+		then
+			send_error "DEBUG" "The $proc process has been checked."
+			echo "DEBUG - The $proc process has been checked."
+		fi
+	done
 }
 
 send_error(){
@@ -99,7 +163,7 @@ check() {
 	check_disk
 	check_cpu
 	check_ping
-
+	check_processes
 }
 
 check
