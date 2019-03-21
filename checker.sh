@@ -24,10 +24,11 @@ load_config(){
 		CPU_CRITICAL=90
 		CPU_WARNING=80	
 		# Ping
-		PING_HOST="google.es"
+		PING_HOSTS="google.es;192.168.1.1"
 		PING_NUMBER=3
 		#Processes
 		PROCESSES_LIST="ssh;http"
+		# Iptables
 }
 
 check_ram(){
@@ -112,20 +113,26 @@ check_cpu(){
 
 check_ping(){
 
-	ping=$(ping -i 0.2 -c $PING_NUMBER $PING_HOST > /dev/null)
+	hosts=$(echo $PING_HOSTS | tr ";" "\n")
 
-	if [ "$ping" != 0 ]
-	then
-		send_error "CRITICAL" "Ping to $PING_HOST has failed." 
-	fi
+        for host in $hosts
+        do
+
+		ping=$(ping -i 0.2 -c $PING_NUMBER $host > /dev/null)
+
+		if [ "$ping" != 0 ]
+		then
+			send_error "CRITICAL" "Ping to $host has failed." 
+		fi
 
 
-	# Debug mode
-	if [ $DEBUG_MODE == 1 ]
-        then
-                send_error "DEBUG" "The ping to $PING_HOST has been checked."
-                echo "DEBUG - The ping to $PING_HOST has been checked."
-        fi
+		# Debug mode
+		if [ $DEBUG_MODE == 1 ]
+        	then
+                	send_error "DEBUG" "The ping to $host has been checked."
+                	echo "DEBUG - The ping to $host has been checked."
+        	fi
+	done
 }
 
 check_processes(){
@@ -149,6 +156,22 @@ check_processes(){
 	done
 }
 
+check_iptables(){
+
+	iptablesUP=$(sudo iptables -n -L -v --line-numbers | egrep "^[0-9]" | wc -l)
+	if [ $iptablesUP -le 0 ]
+        then
+        	send_error "CRITICAL" "Iptables rules are disabled."
+        fi
+
+        if [ $DEBUG_MODE == 1 ]
+        then
+        	send_error "DEBUG" "It has been checked if the iptables are disabled."
+                echo "DEBUG - It has been checked if the iptables are disabled."
+        fi
+
+}
+
 send_error(){
 
 	message="$1 - $2"
@@ -165,6 +188,7 @@ check() {
 	check_cpu
 	check_ping
 	check_processes
+	check_iptables
 }
 
 check
