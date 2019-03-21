@@ -7,9 +7,13 @@ load_config(){
 	TELEGRAM_CHAT=""
 	TELEGRAM_ENDPOINT="https://api.telegram.org/bot"$TELEGRAM_TOKEN"/sendMessage?chat_id="$TELEGRAM_CHAT
 
-	# Memory
-	MEMORY_CRITICAL=90
-	MEMORY_WARNING=80	
+	# Ram
+	RAM_CRITICAL=90
+	RAM_WARNING=80	
+
+	# Swap
+	SWAP_CRITICAL=90
+	SWAP_WARNING=80
 
 	# Disk
 	DISK_CRITICAL=90
@@ -23,14 +27,23 @@ load_config(){
 	PING_HOST="google.es"
 }
 
-check_mem(){
+check_ram(){
 
 	totalRam=$(free -m | awk '/Mem:/ { print $2 }')
 	freeRam=$(free -m | awk '/Mem:/ { print $4 }')
-	totalSwap=$(free -m | awk '/Swap:/ { print $2 }')
-	freeSwap=$(free -m | awk '/Swap:/ { print $3 }')
+
+	percentRam$(bc <<< "scale=1; $freeRam*100 / $totalRam")
+}
+
+check_swap(){
+
+        totalSwap=$(free -m | awk '/Swap:/ { print $2 }')
+        freeSwap=$(free -m | awk '/Swap:/ { print $3 }')
+
+        percentSwap$(bc <<< "scale=1; $freeSwap*100 / $totalSwap")
 
 }
+
 
 check_disk(){
 
@@ -65,7 +78,8 @@ send_error(){
 check() {
 
 	load_config
-	check_mem
+	check_ram
+	check_swap
 	check_disk
 	check_cpu
 	check_ping
