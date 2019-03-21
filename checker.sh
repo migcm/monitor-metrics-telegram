@@ -25,6 +25,7 @@ load_config(){
 		CPU_WARNING=80	
 		# Ping
 		PING_HOST="google.es"
+		PING_NUMBER=3
 		#Processes
 		PROCESSES_LIST="ssh;http"
 }
@@ -111,7 +112,7 @@ check_cpu(){
 
 check_ping(){
 
-	ping=$(ping -q -c3 $PING_HOST > /dev/null)
+	ping=$(ping -i 0.2 -c $PING_NUMBER $PING_HOST > /dev/null)
 
 	if [ "$ping" != 0 ]
 	then
