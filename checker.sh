@@ -2,6 +2,11 @@
 
 load_config(){
 
+	# Telegram
+	TELEGRAM_TOKEN=""
+	TELEGRAM_CHAT=""
+	TELEGRAM_ENDPOINT="https://api.telegram.org/bot"$TELEGRAM_TOKEN"/sendMessage?chat_id="$TELEGRAM_CHAT
+
 	# Memory
 	MEMORY_CRITICAL=90
 	MEMORY_WARNING=80	
@@ -52,8 +57,8 @@ check_ping(){
 
 send_error(){
 
-	#Here you need to send to Telegram
-	echo "$1 - $2"
+	message="$1 - $2"
+	$(curl -s -X POST $TELEGRAM_ENDPOINT -F text="$message" > /dev/null)
 
 }
 
