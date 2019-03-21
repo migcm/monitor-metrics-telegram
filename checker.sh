@@ -32,7 +32,16 @@ check_ram(){
 	totalRam=$(free -m | awk '/Mem:/ { print $2 }')
 	freeRam=$(free -m | awk '/Mem:/ { print $4 }')
 
-	percentRam$(bc <<< "scale=1; $freeRam*100 / $totalRam")
+	percentRam=$(bc <<< "scale=1; $freeRam*100 / $totalRam")
+
+	if [ "$percentRam" > $RAM_CRITICAL ]
+        then
+                send_error "CRITICAL" "The ram is at $percentSwap."
+        elif [ "$percentRam" > $RAM_WARNING  ]
+        then
+                send_error "WARNING" "The ram is at $percentSwap."
+        fi
+
 }
 
 check_swap(){
@@ -40,8 +49,15 @@ check_swap(){
         totalSwap=$(free -m | awk '/Swap:/ { print $2 }')
         freeSwap=$(free -m | awk '/Swap:/ { print $3 }')
 
-        percentSwap$(bc <<< "scale=1; $freeSwap*100 / $totalSwap")
+        percentSwap=$(bc <<< "scale=1; $freeSwap*100 / $totalSwap")
 
+	if [ "$percentSwap" > $SWAP_CRITICAL ]
+        then
+                send_error "CRITICAL" "The swap is at $percentSwap."
+        elif [ "$percentSwap" > $SWAP_WARNING  ]
+	then
+                send_error "WARNING" "The swap is at $percentSwap."
+	fi
 }
 
 
