@@ -29,6 +29,8 @@ load_config(){
 		#Processes
 		PROCESSES_LIST="ssh;http"
 		# Iptables
+		# Ports
+		PORTS_LIST="localhost:80;localhost:443"
 }
 
 check_ram(){
@@ -172,6 +174,29 @@ check_iptables(){
 
 }
 
+check_ports(){
+
+	ports=$(echo $PORTS_LIST | tr ";" "\n")
+
+	for port in $ports
+	do
+
+		hostP=$(echo $port | tr ":" " ")
+
+		portTest=$(nc -zv $hostP 2>&1)
+
+		if [[ $portTest != *"succeeded"* ]]; then
+  			send_error "CRITICAL" "The port [$port] is not open."
+		fi
+
+		if [ $DEBUG_MODE == 1 ]
+		then
+			send_error "DEBUG" "The port [$port] has been checked."
+			echo "DEBUG - The port [$port] has been checked."
+		fi
+	done
+}
+
 send_error(){
 
 	message="$1 - $2"
@@ -189,6 +214,8 @@ check() {
 	check_ping
 	check_processes
 	check_iptables
+	check_ports
+
 }
 
 check
