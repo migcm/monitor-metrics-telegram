@@ -89,10 +89,10 @@ check_disk(){
 	percentDisk=$(df -h --output=pcent -x tmpfs -x devtmpfs)
 
 
-	if [ "$percentDisk" > $SWAP_CRITICAL ]
+	if [ "$percentDisk" > $DISK_CRITICAL ]
         then
                 send_error "CRITICAL" "HD is at $percentDisk."
-        elif [ "$percentDisk" > $SWAP_WARNING  ]
+        elif [ "$percentDisk" > $DISK_WARNINGS  ]
 	then
                 send_error "WARNING" "HD is at $percentDisk."
 	fi
