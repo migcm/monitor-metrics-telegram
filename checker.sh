@@ -59,10 +59,10 @@ check_ram(){
 
 check_swap(){
 
-        totalSwap=$(free -m | awk '/Swap:/ { print $2 }')
-        freeSwap=$(free -m | awk '/Swap:/ { print $3 }')
+    totalSwap=$(free -m | awk '/Swap:/ { print $2 }')
+    freeSwap=$(free -m | awk '/Swap:/ { print $3 }')
 
-        percentSwap=$(bc <<< "scale=1; $freeSwap*100 / $totalSwap")
+    percentSwap=$(bc <<< "scale=1; $freeSwap*100 / $totalSwap")
 
 	if [ "$percentSwap" > $SWAP_CRITICAL ]
         then
@@ -84,10 +84,18 @@ check_swap(){
 
 check_disk(){
 
-	totalDisk=$()
-	freeDisk=$()
+	totalDisk=$(df -h --output=size -x tmpfs -x devtmpfs)
+	freeDisk=$(df -h --output=avail -x tmpfs -x devtmpfs)
+	percentDisk=$(df -h --output=pcent -x tmpfs -x devtmpfs)
 
-	percentDisk=$()
+
+	if [ "$percentDisk" > $SWAP_CRITICAL ]
+        then
+                send_error "CRITICAL" "HD is at $percentDisk."
+        elif [ "$percentDisk" > $SWAP_WARNING  ]
+	then
+                send_error "WARNING" "HD is at $percentDisk."
+	fi
 
 
 	# Debug mode
@@ -100,10 +108,23 @@ check_disk(){
 }
 
 check_cpu(){
-	totalCPU=$()
-	freeCPU=$()
 
-	percentCPU=$()
+	totalCPU=$(top -bn1 | grep "Cpu(s)" | \
+           sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | \
+           awk '{print 100 - $1"%"}')
+
+	freeCPU=$(top -bn1 | grep "Cpu(s)" | \
+           sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | \
+           awk '{print $1"%"}')
+
+    if [ "$freeCPU" > $CPU_CRITICAL ]
+        then
+                send_error "CRITICAL" "CPU is at $freeCPU."
+        elif [ "$freeCPU" > $CPU_WARNING  ]
+	then
+                send_error "WARNING" "CPU is at $freeCPU."
+	fi
+
 
 	# Debug mode
         if [ $DEBUG_MODE == 1 ]
