@@ -2,7 +2,7 @@
 
 This allows you to monitor remote machine metrics (disk usage, CPU load, etc.) and send notifications to telegram if certain thresholds are exceeded.
 
-It is necessary to create a cron that executes the script every "x" seconds/minutes/hours/days...
+It is necessary to create a cron that executes the script every "x" seconds/minutes/hours/days... and have "bc" installed on the server (```apt-get install bc```).
 
 The script works similar to [Nagios](https://www.nagios.org/) [NRPE](https://support.nagios.com/kb/category.php?id=10) but without using another external server. It is a low cost monitoring.
 
