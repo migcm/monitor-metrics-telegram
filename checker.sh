@@ -40,12 +40,15 @@ check_ram(){
 
 	percentRam=$(bc <<< "scale=1; $freeRam*100 / $totalRam")
 
-	if [ "$percentRam" > $RAM_CRITICAL ]
+	#convert to int
+    percentRamint=${percentRam%.*}
+
+	if (( $percentRamint > $RAM_CRITICAL ))
         then
-                send_error "CRITICAL" "The ram is at $percentSwap."
-        elif [ "$percentRam" > $RAM_WARNING  ]
+                send_error " 🔴 CRITICAL 🔴 " "The ram is at $percentRam."
+        elif (( $percentRamint > $RAM_WARNING ))
         then
-                send_error "WARNING" "The ram is at $percentSwap."
+                send_error "WARNING" "The ram is at $percentRam."
         fi
 
 
@@ -86,15 +89,14 @@ check_disk(){
 
 	totalDisk=$(df -h --output=size -x tmpfs -x devtmpfs)
 	freeDisk=$(df -h --output=avail -x tmpfs -x devtmpfs)
-	percentDisk=$(df -h --output=pcent -x tmpfs -x devtmpfs)
-
-
+	percentDisk=$(df -h --output=avail -x tmpfs -x devtmpfs | grep -o '[0-9]')
+	
 	if [ "$percentDisk" > $DISK_CRITICAL ]
         then
-                send_error "CRITICAL" "HD is at $percentDisk."
-        elif [ "$percentDisk" > $DISK_WARNINGS  ]
+                send_error "CRITICAL" "HD is at $percentDisk %."
+        elif [ "$percentDisk" > $DISK_WARNING  ]
 	then
-                send_error "WARNING" "HD is at $percentDisk."
+                send_error "WARNING" "HD is at $percentDisk %."
 	fi
 
 
@@ -109,28 +111,30 @@ check_disk(){
 
 check_cpu(){
 
-	totalCPU=$(top -bn1 | grep "Cpu(s)" | \
+	usedCPU=$(top -bn1 | grep "Cpu(s)" | \
            sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | \
-           awk '{print 100 - $1"%"}')
+           awk '{print 100 - $1}')
 
 	freeCPU=$(top -bn1 | grep "Cpu(s)" | \
            sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | \
-           awk '{print $1"%"}')
+           awk '{print $1}')
 
-    if [ "$freeCPU" > $CPU_CRITICAL ]
+    #convert to int
+    usedCPUint=${usedCPU%.*}
+
+    if (( $usedCPUint > $CPU_CRITICAL ))
         then
-                send_error "CRITICAL" "CPU is at $freeCPU."
-        elif [ "$freeCPU" > $CPU_WARNING  ]
-	then
-                send_error "WARNING" "CPU is at $freeCPU."
+        	send_error "🔴 CRITICAL 🔴" "CPU is at $usedCPU %."
+        elif (( $usedCPUint > $CPU_WARNING ))
+		then
+        	send_error "WARNING" "CPU is at $usedCPU %."
 	fi
-
 
 	# Debug mode
         if [ $DEBUG_MODE == 1 ]
         then
-                send_error "DEBUG" "The CPU has been checked: $percentCPU %."
-                echo "DEBUG - The CPU has been checked: $percentCPU %."
+                send_error "DEBUG" "The CPU has been checked: $usedCPU %."
+                echo "DEBUG - The CPU has been checked: $usedCPU %."
         fi
 }
 
@@ -227,15 +231,15 @@ send_error(){
 
 check() {
 
-	load_config
-	check_ram
-	check_swap
-	check_disk
-	check_cpu
-	check_ping
-	check_processes
-	check_iptables
-	check_ports
+	load_config # works
+	check_ram #works
+	check_swap #testing
+	check_disk #testing
+	check_cpu #works
+	check_ping #testing
+	check_processes #testing
+	check_iptables #testing
+	check_ports #testing
 
 }
 
