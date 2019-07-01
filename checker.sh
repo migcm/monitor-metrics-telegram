@@ -36,8 +36,8 @@ load_config(){
 check_ram(){
 
 	totalRam=$(free -m | awk '/Mem:/ { print $2 }')
-	freeRam=$(free -m | awk '/Mem:/ { print $4 }')
-	percentRam=$(bc <<< "scale=1; $freeRam*100 / $totalRam")
+	usedRam=$(free -m | awk '/Mem:/ { print $3 }')
+	percentRam=$(bc <<< "scale=1; $usedRam*100 / $totalRam")
 
 	if (( ${percentRam%.*} > $RAM_CRITICAL  ))
     then
