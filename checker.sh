@@ -5,10 +5,15 @@ load_config(){
 	# Telegram
 	TELEGRAM_TOKEN=""
 	TELEGRAM_CHAT=""
-	TELEGRAM_ENDPOINT="https://api.telegram.org/bot"$TELEGRAM_TOKEN"/sendMessage?chat_id="$TELEGRAM_CHAT
+	TELEGRAM_MESSAGE_ENDPOINT="https://api.telegram.org/bot"$TELEGRAM_TOKEN"/sendMessage?chat_id="$TELEGRAM_CHAT
+	TELEGRAM_DOCUMENT_ENDPOINT="https://api.telegram.org/bot"$TELEGRAM_TOKEN"/sendDocument?chat_id="$TELEGRAM_CHAT
 
 	# Other
         DEBUG_MODE=1
+
+    # Send log if error
+    	SEND_LOG=1
+    	FILE_LOG="/var/log/syslog"
 
 	#Check
 		# Ram
@@ -43,17 +48,17 @@ check_ram(){
 
 	if (( ${percentRam%.*} > $RAM_CRITICAL  ))
     then
-            send_error " 🔴 CRITICAL 🔴 " "The ram is at $percentRam."
+            send_error " 🔴 CRITICAL 🔴 " "The ram is at $percentRam." "error"
     elif (( ${percentRam%.*} > $RAM_WARNING ))
     then
-            send_error " ❕ WARNING ❕ " "The ram is at $percentRam."
+            send_error " ❕ WARNING ❕ " "The ram is at $percentRam." "error"
     fi
 
 
 	# Debug mode
 	if (( $DEBUG_MODE == 1 ))
 	then
-                send_error " 📢 DEBUG 📢 " "The ram has been checked: $percentRam%."
+                send_error " 📢 DEBUG 📢 " "The ram has been checked: $percentRam%." "debug"
                 echo "DEBUG - The ram has been checked: $percentRam%."
 	fi
 }
@@ -72,17 +77,17 @@ check_swap(){
 
 	if (( ${percentSwap%.*} > $SWAP_CRITICAL ))
         then
-                send_error " 🔴 CRITICAL 🔴 " "The swap is at $percentSwap."
+                send_error " 🔴 CRITICAL 🔴 " "The swap is at $percentSwap." "error"
         elif (( ${percentSwap%.*} > $SWAP_WARNING  ))
 	then
-                send_error " ❕ WARNING ❕ " "The swap is at $percentSwap."
+                send_error " ❕ WARNING ❕ " "The swap is at $percentSwap." "error"
 	fi
 
 
 	# Debug mode
 	if (( $DEBUG_MODE == 1 ))
     then
-            send_error " 📢 DEBUG 📢 " "The swap has been checked: $percentSwap %."
+            send_error " 📢 DEBUG 📢 " "The swap has been checked: $percentSwap %." "debug"
             echo "DEBUG - The swap has been checked: $percentSwap%."
     fi
 }
@@ -94,17 +99,17 @@ check_disk(){
 
 	if (( $percentDisk > $DISK_CRITICAL ))
         then
-                send_error " 🔴 CRITICAL 🔴 " "HD is at $percentDisk%."
+                send_error " 🔴 CRITICAL 🔴 " "HD is at $percentDisk%." "error"
         elif (( $percentDisk > $DISK_WARNING  ))
 	then
-                send_error " ❕ WARNING ❕ " "HD is at $percentDisk%."
+                send_error " ❕ WARNING ❕ " "HD is at $percentDisk%." "error"
 	fi
 
 
 	# Debug mode
 	if (( $DEBUG_MODE == 1 ))
         then
-                send_error " 📢 DEBUG 📢 " "The disk has been checked: $percentDisk%."
+                send_error " 📢 DEBUG 📢 " "The disk has been checked: $percentDisk%." "debug"
                 echo "DEBUG - The disk has been checked: $percentDisk%."
         fi
 
@@ -129,7 +134,7 @@ check_cpu(){
 	# Debug mode
     if (( $DEBUG_MODE == 1 ))
     then
-            send_error " 📢 DEBUG 📢 " "The CPU has been checked: $usedCPU%."
+            send_error " 📢 DEBUG 📢 " "The CPU has been checked: $usedCPU%." "debug"
             echo "DEBUG - The CPU has been checked: $usedCPU%."
     fi
 }
@@ -144,14 +149,14 @@ check_ping(){
 
 		if ! ping -c $PING_NUMBER $host > /dev/null 
 		then
-			send_error " 🔴 CRITICAL 🔴 " "Ping to $host has failed." 
+			send_error " 🔴 CRITICAL 🔴 " "Ping to $host has failed." "error"
 		fi
 
 
 		# Debug mode
 		if (( $DEBUG_MODE == 1 ))
     	then
-            	send_error " 📢 DEBUG 📢 " "The ping to $host has been checked."
+            	send_error " 📢 DEBUG 📢 " "The ping to $host has been checked." "debug"
             	echo "DEBUG - The ping to $host has been checked."
     	fi
 	done
@@ -169,14 +174,14 @@ check_processes(){
 
 		if (( $running <= 0 ))
 		then
-			send_error " 🔴 CRITICAL 🔴 " "The $proc process is not running."
+			send_error " 🔴 CRITICAL 🔴 " "The $proc process is not running." "error"
 		fi
 
 
 		# Debug mode
 		if (( $DEBUG_MODE == 1 ))
 		then
-			send_error " 📢 DEBUG 📢 " "The $proc process has been checked."
+			send_error " 📢 DEBUG 📢 " "The $proc process has been checked." "debug"
 			echo "DEBUG - The $proc process has been checked."
 		fi
 	done
@@ -189,14 +194,14 @@ check_iptables(){
 
 	if (( $iptablesUP > 0 ))
         then
-        	send_error " 🔴 CRITICAL 🔴 " "Iptables rules are disabled."
+        	send_error " 🔴 CRITICAL 🔴 " "Iptables rules are disabled." "error"
         fi
 
 
         # Debug mode
         if (( $DEBUG_MODE == 1 ))
         then
-        	send_error " 📢 DEBUG 📢 " "It has been checked if the iptables are disabled."
+        	send_error " 📢 DEBUG 📢 " "It has been checked if the iptables are disabled." "debug"
             echo "DEBUG - It has been checked if the iptables are disabled."
         fi
 
@@ -211,14 +216,14 @@ check_ports(){
 	do
 		if ! netstat -l | grep $port | grep LISTEN > /dev/null
 		then
-  			send_error " 🔴 CRITICAL 🔴 " "The port [$port] is not open."
+  			send_error " 🔴 CRITICAL 🔴 " "The port [$port] is not open." "error"
 		fi
 
 
 		# Debug mode
 		if (( $DEBUG_MODE == 1 ))
 		then
-			send_error " 📢 DEBUG 📢 " "The port [$port] has been checked."
+			send_error " 📢 DEBUG 📢 " "The port [$port] has been checked." "debug"
 			echo "DEBUG - The port [$port] has been checked."
 		fi
 	done
@@ -236,14 +241,14 @@ check_docker(){
 
                 if [ $(docker inspect -f '{{.State.Running}}' $container_id) != "true" ]
                 then
-                        send_error " 🔴 CRITICAL 🔴 " "The docker container '$container' is not running."
+                        send_error " 🔴 CRITICAL 🔴 " "The docker container '$container' is not running." "error"
                 fi
 
 
                 # Debug mode
                 if (( $DEBUG_MODE == 1 ))
                 then
-                        send_error " 📢 DEBUG 📢 " "The docker container '$container' has been checked."
+                        send_error " 📢 DEBUG 📢 " "The docker container '$container' has been checked." "debug"
                         echo "DEBUG - The docker container '$container' has been checked."
                 fi
         done
@@ -253,9 +258,21 @@ check_docker(){
 
 
 send_error(){
+
 	message="$1 - $2"
-	$(curl -s -X POST $TELEGRAM_ENDPOINT -F text="$message" > /dev/null)
+
+	if [ $SEND_LOG == 1 ] && [ $3 == "error" ]
+	then
+		$(curl -s -X POST $TELEGRAM_DOCUMENT_ENDPOINT -F document=@"$FILE_LOG" -F caption="$message" > /dev/null)
+	elif [ "$3" == "debug" ]
+	then
+		$(curl -s -X POST $TELEGRAM_MESSAGE_ENDPOINT -F disable_notification=true -F text="$message" > /dev/null)
+	else
+		$(curl -s -X POST $TELEGRAM_MESSAGE_ENDPOINT -F text="$message" > /dev/null)
+	fi
+	
 }
+
 
 check() {
 
