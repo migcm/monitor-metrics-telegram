@@ -31,6 +31,8 @@ load_config(){
 		# Iptables
 		# Ports
 		PORTS_LIST="0.0.0.0:ssh"
+		# Docker
+		DOCKER_CONTAINER_LIST="2cc4c7443c32:Principal;ebc966fdd1e3:Secundario"
 }
 
 check_ram(){
@@ -51,8 +53,8 @@ check_ram(){
 	# Debug mode
 	if (( $DEBUG_MODE == 1 ))
 	then
-                send_error " 📢 DEBUG 📢 " "The ram has been checked: $percentRam %."
-                echo "DEBUG - The ram has been checked: $percentRam %."
+                send_error " 📢 DEBUG 📢 " "The ram has been checked: $percentRam%."
+                echo "DEBUG - The ram has been checked: $percentRam%."
 	fi
 }
 
@@ -81,7 +83,7 @@ check_swap(){
 	if (( $DEBUG_MODE == 1 ))
     then
             send_error " 📢 DEBUG 📢 " "The swap has been checked: $percentSwap %."
-            echo "DEBUG - The swap has been checked: $percentSwap %."
+            echo "DEBUG - The swap has been checked: $percentSwap%."
     fi
 }
 
@@ -92,18 +94,18 @@ check_disk(){
 
 	if (( $percentDisk > $DISK_CRITICAL ))
         then
-                send_error " 🔴 CRITICAL 🔴 " "HD is at $percentDisk %."
+                send_error " 🔴 CRITICAL 🔴 " "HD is at $percentDisk%."
         elif (( $percentDisk > $DISK_WARNING  ))
 	then
-                send_error " ❕ WARNING ❕ " "HD is at $percentDisk %."
+                send_error " ❕ WARNING ❕ " "HD is at $percentDisk%."
 	fi
 
 
 	# Debug mode
 	if (( $DEBUG_MODE == 1 ))
         then
-                send_error " 📢 DEBUG 📢 " "The disk has been checked: $percentDisk %."
-                echo "DEBUG - The disk has been checked: $percentDisk %."
+                send_error " 📢 DEBUG 📢 " "The disk has been checked: $percentDisk%."
+                echo "DEBUG - The disk has been checked: $percentDisk%."
         fi
 
 }
@@ -117,18 +119,18 @@ check_cpu(){
 
     if (( ${usedCPU%.*} > $CPU_CRITICAL ))
         then
-        	send_error "🔴 CRITICAL 🔴" "CPU is at $usedCPU %."
+        	send_error "🔴 CRITICAL 🔴" "CPU is at $usedCPU%."
         elif (( ${usedCPU%.*} > $CPU_WARNING ))
 		then
-        	send_error " ❕ WARNING ❕ " "CPU is at $usedCPU %."
+        	send_error " ❕ WARNING ❕ " "CPU is at $usedCPU%."
 	fi
 
 
 	# Debug mode
     if (( $DEBUG_MODE == 1 ))
     then
-            send_error " 📢 DEBUG 📢 " "The CPU has been checked: $usedCPU %."
-            echo "DEBUG - The CPU has been checked: $usedCPU %."
+            send_error " 📢 DEBUG 📢 " "The CPU has been checked: $usedCPU%."
+            echo "DEBUG - The CPU has been checked: $usedCPU%."
     fi
 }
 
@@ -223,6 +225,33 @@ check_ports(){
 }
 
 
+check_docker(){
+
+        containers=$(echo $DOCKER_CONTAINER_LIST | tr ";" "\n")
+
+        for container in $containers
+        do
+
+                container_id=$(echo $container | cut -f1 -d":")
+
+                if [ $(docker inspect -f '{{.State.Running}}' $container_id) != "true" ]
+                then
+                        send_error " 🔴 CRITICAL 🔴 " "The docker container '$container' is not running."
+                fi
+
+
+                # Debug mode
+                if (( $DEBUG_MODE == 1 ))
+                then
+                        send_error " 📢 DEBUG 📢 " "The docker container '$container' has been checked."
+                        echo "DEBUG - The docker container '$container' has been checked."
+                fi
+        done
+
+
+}
+
+
 send_error(){
 	message="$1 - $2"
 	$(curl -s -X POST $TELEGRAM_ENDPOINT -F text="$message" > /dev/null)
@@ -239,6 +268,7 @@ check() {
 	check_processes # works
 	check_iptables # works
 	check_ports # works
+	check_docker # works
 
 }
 
