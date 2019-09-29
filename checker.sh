@@ -120,7 +120,7 @@ check_cpu(){
 
 	usedCPU=$(top -bn1 | grep "Cpu(s)" | \
            sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | \
-           awk '{print 100 - $1}')
+           awk '{print $1}')
 
     if (( ${usedCPU%.*} > $CPU_CRITICAL ))
         then
@@ -192,7 +192,7 @@ check_iptables(){
 
 	iptablesUP=$(sudo iptables -n -L -v --line-numbers | egrep "^[0-9]" | wc -l)
 
-	if (( $iptablesUP > 0 ))
+	if (( $iptablesUP < 1 ))
         then
         	send_error " 🔴 CRITICAL 🔴 " "Iptables rules are disabled." "error"
         fi
