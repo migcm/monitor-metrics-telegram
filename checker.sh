@@ -38,6 +38,8 @@ load_config(){
 		PORTS_LIST="0.0.0.0:ssh"
 		# Docker
 		DOCKER_CONTAINER_LIST="2cc4c7443c32:Principal;ebc966fdd1e3:Secundario"
+		# Users allowed
+		MAXUSERS=2
 }
 
 check_ram(){
@@ -253,6 +255,18 @@ check_docker(){
                 fi
         done
 
+
+}
+
+check_ssh_connections(){
+	
+	users=$(who | wc -l)
+    usersnetstat=$(netstat -natp | grep [0-9][0-9]:22 | wc -l)
+
+	if (($users>MAXUSERS))||(($usersnetstat>MAXUSERS))
+	then
+        send_error "📢 ALERT 📢  $users users connected via SSH"
+	fi
 
 }
 
