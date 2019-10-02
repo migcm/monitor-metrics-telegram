@@ -26,6 +26,7 @@ Edit the checker.sh file and modify the configuration variables with the paramet
 * **PROCESSES_LIST**: Processes that will be verified that they are running. They should be separated by ";".
 * **PORTS_LIST**: Ports to be checked that are open. It should be written as host:port (For example: localhost:80). They should be separated by ";".
 * **DOCKER_CONTAINER_LIST**: List of docker containers that want to be checked. It should be written as docker_id:docker_name (For example: 231as3213asdf:BBDD). They sould be separate by ";" (231as3213asdf:BBDD;6145af3213asdf:Script).
+* **MAX_SYSTEM_USERS**: Maximum number of users (contained in /etc/passwd) that must exist in the system.
 
 ### Checks available
 * check_ram    
@@ -37,7 +38,7 @@ Edit the checker.sh file and modify the configuration variables with the paramet
 * check_iptables
 * check_ports
 * check_docker
-
+* check_system_users
 
 ### Contribution
 Feel free to contribute!

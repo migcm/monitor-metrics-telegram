@@ -40,6 +40,8 @@ load_config(){
 		DOCKER_CONTAINER_LIST="2cc4c7443c32:Principal;ebc966fdd1e3:Secundario"
 		# Users allowed
 		MAXUSERS=2
+		# System users
+		MAX_SYSTEM_USERS=20
 }
 
 check_ram(){
@@ -265,10 +267,36 @@ check_ssh_connections(){
 
 	if (($users>MAXUSERS))||(($usersnetstat>MAXUSERS))
 	then
-        send_error "📢 ALERT 📢  $users users connected via SSH"
+        send_error " 🔴 CRITICAL 🔴 " "$users users connected via SSH" "error"
 	fi
 
+	# Debug mode
+	if (( $DEBUG_MODE == 1 ))
+    then
+        send_error " 📢 DEBUG 📢 " "The number of users connected via SSH has been checked: $users." "debug"
+        echo "DEBUG - The number of users connected via SSH has been checked: $users."
+    fi
+
 }
+
+
+
+check_system_users(){
+
+		users=$(awk -F: '{ print $1}' /etc/passwd | wc -l)
+		    
+		if (($users > $MAX_SYSTEM_USERS))
+		then
+		    send_error " 🔴 CRITICAL 🔴 " "There are more than $MAX_SYSTEM_USERS users in the system: $users." "error"
+		fi
+
+		# Debug mode
+		if (( $DEBUG_MODE == 1 ))
+     	then
+            send_error " 📢 DEBUG 📢 " "The number of system users has been checked: $users." "debug"
+            echo "DEBUG - The number of system users has been checked: $users."
+     	fi
+}	
 
 
 send_error(){
@@ -300,7 +328,7 @@ check() {
 	check_iptables # works
 	check_ports # works
 	check_docker # works
-
+	check_system_users #works
 }
 
 check
