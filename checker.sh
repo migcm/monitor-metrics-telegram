@@ -101,10 +101,10 @@ check_disk(){
 
 	percentDisk=$(df -h | grep sd | awk '{print $5}' | sort -n | tail -n 1 | cut -d "%" -f1)
 
-	if (( $percentDisk > $DISK_CRITICAL ))
+	if (( $(($percentDisk+0)) -ge $DISK_CRITICAL ))
         then
                 send_error " 🔴 CRITICAL 🔴 " "HD is at $percentDisk%." "error"
-        elif (( $percentDisk > $DISK_WARNING  ))
+        elif (( $(($percentDisk+0)) -ge $DISK_WARNING  ))
 	then
                 send_error " ❕ WARNING ❕ " "HD is at $percentDisk%." "error"
 	fi
@@ -303,7 +303,7 @@ send_error(){
 
 	message="$1 - $2"
 
-	if [ $SEND_LOG == 1 ] && [ $3 == "error" ]
+	if [ $SEND_LOG == 1 ] && [ "$3" == "error" ]
 	then
 		$(curl -s -X POST $TELEGRAM_DOCUMENT_ENDPOINT -F document=@"$FILE_LOG" -F caption="$message" > /dev/null)
 	elif [ "$3" == "debug" ]
